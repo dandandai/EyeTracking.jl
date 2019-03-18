@@ -1,5 +1,8 @@
 module EyeTracking
 
-greet() = print("Hello World!")
+include("Parser.jl")
+
+export
+parse_file
 
 end # module
