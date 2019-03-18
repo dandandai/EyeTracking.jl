@@ -1,0 +1,10 @@
+name = "EyeTracking"
+uuid = "a4a22d3b-6b88-55f8-8e42-55d0bf3b78be"
+authors = ["Anna  <anna.dai@student.adelaide.edu.au>"]
+version = "0.1.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
