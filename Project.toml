@@ -3,6 +3,11 @@ uuid = "a4a22d3b-6b88-55f8-8e42-55d0bf3b78be"
 authors = ["Anna  <anna.dai@student.adelaide.edu.au>"]
 version = "0.1.0"
 
+[deps]
+CImGui = "5d785b6c-b76f-510e-a07c-3070796c7e87"
+LazyJSON = "fc18253b-5e1b-504c-a4a2-9ece4944c004"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
