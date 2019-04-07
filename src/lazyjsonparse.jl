@@ -1,93 +1,98 @@
 using LazyJSON
+
 using DataFrames
 
-# j = String(read("examplejsondata.json"))
+
+##################################################################
+# x= open("examplejsondata.json", "r")
+# y= read(x)
+# typeof(y)
+# aa = LazyJSON.parse(y)
 #
-# function f(json)
-#     v = LazyJSON.parse(json)
-#     # v["shapes"]["scope"]["enum"][1]
-#     println(v)
+# function createdataframe(input::Dict)
+#   parsedinput = Dict()
+#   for x in keys(input)
+#     parsedinput[Symbol(x)] = [input[x]]
+#   end
+#   return DataFrame(parsedinput)
 # end
 #
-# ll = length(j)
+# createdataframe(aa)
+##################################################################
+
+# println(typeof(a))
+# a["pc"]
+# typeof(a["pc"])
 #
-# f(j)
-
-x= open("livedata1.json", "r")
-y= read(x)
-a = LazyJSON.parse(y)
-
-function rrr()
-    Base.display(a)
-
-    return
-end
-
-rrr()
-
-println(typeof(a))
-a["pc"]
-typeof(a["pc"])
-
-convert(Vector{float(Int)}, a["pc"])
-
-ddd = DataFrame(pc = float(Int)[])
-
-for v in zip(a["pc"])
-           push!(ddd, v)
-end
-
-ddd
-print(ddd)
+# convert(Vector{float(Int)}, a["pc"])
+#
+# ddd = DataFrame(pc = float(Int)[])
+#
+# for v in zip(a["pc"])
+#            push!(ddd, v)
+# end
+#
+# ddd
+# print(ddd)
 
 ##################################################################
 ######try conver json to dataframe
-
-j = LazyJSON.value("""{"x": [1,2,3,4,5], "y": [2,4,6,8,10]}""")
-
-print(j)
-
-######这步的目的是什么？？？
-# LazyJSON.Object
-
-j["x"]
-
-print(typeof(j["x"]))
-
-######这步的目的是什么？？？
-# LazyJSON.Array
-
-convert(Vector{Int}, j["x"])
-
-d = DataFrame(x = Int[], y = Int[])
-
-for v in zip(j["x"], j["y"])
-           push!(d, v)
-end
-
-print(d)
-##################################################################
-
-##################################################################
-# open("examplejsondata.json") do file
-#     for ln in eachline(file)
-#         Base.display(LazyJSON.parse("$(length(ln)), $(ln)"))
-#     end
+#
+# j = LazyJSON.value("""{"x": [1,2,3,4,5], "y": [2,4,6,8,10]}""")
+#
+# print(j)
+#
+# ######这步的目的是什么？？？
+# # LazyJSON.Object
+#
+# j["x"]
+#
+# print(typeof(j["x"]))
+#
+# ######这步的目的是什么？？？
+# # LazyJSON.Array
+#
+# convert(Vector{Int}, j["x"])
+#
+# d = DataFrame(x = Int[], y = Int[])
+#
+# for v in zip(j["x"], j["y"])
+#            push!(d, v)
 # end
+#
+# print(d)
+##################################################################
 
-i = Dict{}
-typeof(i)
 
-open("examplejsondata.json") do f
+##################################################################
+
+
+df = DataFrame
+
+open("examplejsondata.json") do file
    line = 1
-   while !eof(f)
-     x = readline(f)
-     t = LazyJSON.parse(x)
-     # println(t)
-     global i = t
-
+   num = 1
+   while !eof(file)
+     fileLine = readline(file)              # read JSON line
+     pLine = LazyJSON.parse(fileLine)       # Parse JSON line
+     df1 = DataFrame(Dict(pLine))            # Convert parsed JSON line (Dict type)
+     println(num)
+     println(pLine)
+     println(df1)
+     println()
+     # df2 = join(df, df1, on = :eye)
+     # df2 = join(df, df1, kind = :cross, makeunique = true)
+     global df = [df; df1]          #combine dataframe (incomplete -- repeat with all keys)
+     println(df)
      line += 1
+     num += 1
    end
 end
 
-print(typeof(i))
+
+
+##################################################################
+
+
+
+##################################################################
