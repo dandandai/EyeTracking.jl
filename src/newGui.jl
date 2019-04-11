@@ -1,13 +1,3 @@
-using CImGui
-using CImGui
-using CImGui.CSyntax
-using CImGui.CSyntax.CStatic
-using CImGui.GLFWBackend
-using CImGui.OpenGLBackend
-using CImGui.GLFWBackend.GLFW
-using CImGui.OpenGLBackend.ModernGL
-using Printf
-
 function launch()
     @static if Sys.isapple()
         # OpenGL 3.2 + GLSL 150
@@ -50,17 +40,14 @@ function launch()
     eyeWindow = true
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
     f = Cfloat(0.0)
-    Default_files = false
+    # Default_files = false
+    Open_files = true
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
         # start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame()
         ImGui_ImplGlfw_NewFrame()
         CImGui.NewFrame()
-
-        # show the big demo window
-        # show_demo_window && @c CImGui.ShowDemoWindow(&show_demo_window)
-        # EDA_window && @c ShowDemoWindow(&EDA_window)
 
         begin
             CImGui.Begin("Eye Tracking")
