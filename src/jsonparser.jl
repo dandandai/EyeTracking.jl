@@ -1,89 +1,76 @@
-# using JSON
-# import JSON
-#
-# # readdir()
-#
-# ####  open JSON file ####
-# x = open("examplejsondata.json", "r")
-# ####  read JSON lines ####
-# y = readlines(x)
-# # typeof(y)
-# print(y)
-# JSON.parse(y)
-#
-# ll = length(y)
-#
-# # for n in [1,ll]
-# #     r = JSON.parse(y)
-# # end
-#
-# # z = JSON.parse(y)
-# #
-# # s1 = readlines("examplejsondata.json.json")
-#
-# open("examplejsondata.json", "r")
-# JSON.parsefile("/Users/apple/Desktop/Master of Computing & Innovation Project/EyeTracking/examplejsondata.json")
-#
-# ##################################################################
-#
-# # 能打印一行 json, parse一行
-# open("examplejsondata.json") do stream
-#     for line in eachline(stream)
-#         println(line)
-#         f = JSON.parse(line)
-#         println(f)
-#         return f
-#     end
-# end
-# ##################################################################
-#
-#
-# ##################################################################
-#
-# ###打开并打印 json文件的 function
-# # function readFunc(stream)
-# #     for line in eachline(stream)
-# #         println(line)
-# #     end
-# # end
-# #
-# # readj = open(readFunc,"examplejsondata.json")
-# # display(readj)
-# #
-# # z = JSON.parse(readj)
-#
-#
-# ##################################################################
-#
-# ##################################################################
-# portfolio =  """[
-# {
-#   "id":1,
-#   "company":"Telstra",
-#   "symbol":"ASX:TLS",
-#   "price":5.27
-# },
-# {
-#   "id":2,
-#   "company":"BHP",
-#   "symbol":"ASX:BHP",
-#   "price":37.77
-# },
-# {
-#   "id":3,
-#   "company":"Commonwealth Bank of Australia",
-#   "symbol":"ASX:CBA",
-#   "price":77.58
-# }
-# ]"""
-#
-# jsonArray = JSON.parse(portfolio)
-#
-# ##################################################################
-#
-# ##################################################################
-#
-# c = JSON.parsefile("/Users/apple/Desktop/Master of Computing & Innovation Project/EyeTracking/examplejsondata.json")
-# c["ts"]
-# JSON.print(c)
-#
+using JSON
+using DataFrames
+using CSV
+
+##################################################################
+dataf = DataFrame
+
+open("examplejsondata.json") do file
+  fileLine = readline(file)
+  pLine = JSON.parse(fileLine)
+  pLine["eye"] =""
+  pLine["pd"] = 0.0
+  pLine["gd"] = 0.0
+  pLine["gp"] = 0.0
+  pLine["gp3"] = 0.0
+  pLine["gy"] = 0.0
+  pLine["ac"] = 0.0
+  pLine["pts"] = 0.0
+  pLine["vts"] = 0.0
+  pLine["pc"] = 0.0
+  pLine["l"] = 0
+  pLine["dir"] = 0
+  pLine["sig"] = 0
+
+  global dataf = DataFrame(Dict(pLine))
+  lines = readlines(file)
+  for row in lines
+    parseline = JSON.parse(row)
+    if (!(haskey(parseline,"pd")))
+      parseline["pd"] = 0.0
+    end
+    if (!(haskey(parseline,"gd")))
+      parseline["gd"] = 0.0
+    end
+    if (!(haskey(parseline,"gp")))
+      parseline["gp"] = 0.0
+    end
+    if (!(haskey(parseline,"gp3")))
+      parseline["gp3"] = 0.0
+    end
+    if (!(haskey(parseline,"gy")))
+      parseline["gy"] = 0.0
+    end
+    if (!(haskey(parseline,"ac")))
+      parseline["ac"] = 0.0
+    end
+    if (!(haskey(parseline,"pts")))
+      parseline["pts"] = 0.0
+    end
+    if (!(haskey(parseline,"vts")))
+      parseline["vts"] = 0.0
+    end
+    if (!(haskey(parseline,"eye")))
+      parseline["eye"] = ""
+    end
+    if (!(haskey(parseline,"pc")))
+      parseline["pc"] = 0.0
+    end
+    if (!(haskey(parseline,"l")))
+      parseline["l"] = 0
+    end
+    if (!(haskey(parseline,"dir")))
+      parseline["dir"] = 0
+    end
+    if (!(haskey(parseline,"sig")))
+      parseline["sig"] = 0
+    end
+
+    df1 = DataFrame(Dict(parseline))
+    global dataf = append!(dataf, df1)
+  end
+end
+
+println(dataf)
+
+CSV.write("Output.csv", dataf)
