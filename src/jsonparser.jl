@@ -1,28 +1,9 @@
 function parsefile()
   open("examplejsondata.json") do file
-    fileLine = readline(file)
-    pLine = JSON.parse(fileLine)
-    pLine["eye"] =""
-    pLine["pd"] = 0.0
-    pLine["gd"] = 0.0
-    pLine["gp"] = 0.0
-    pLine["gp3"] = 0.0
-    pLine["gy"] = 0.0
-    pLine["ac"] = 0.0
-    pLine["pts"] = 0.0
-    pLine["vts"] = 0.0
-    pLine["pc"] = 0.0
-    pLine["pv"] = 0.0
-    pLine["l"] = 0
-    pLine["dir"] = 0
-    pLine["sig"] = 0
-    pLine["ts"] = 0
-    pLine["s"] = 0
 
-    dataframe = DataFrame(ts=pLine["ts"],s=pLine["s"],sig=pLine["sig"],dir=pLine["dir"],vts=pLine["vts"],pts=pLine["pts"],
-            pv=pLine["pv"],gy=pLine["gy"],ac=pLine["ac"],gp3=pLine["gp3"],gp=pLine["gp"],l=pLine["l"],gd=pLine["gd"],pd=pLine["pd"],pc=pLine["pc"],eye=pLine["eye"])
+    dataframe = DataFrame(ts=Int64[],s=Int64[],sig=Int64[],dir=String[],vts=Int64[],pts=Int64[],
+        pv=Int64[],gy=Float64[],ac=Float64[],gp3=Float64[],gp=Float64[],l=String[],gd=Float64[],pd=Float64[],pc=Float64[],eye=String[])
 
-    # global dataf = DataFrame(Dict(pLine))
     lines = readlines(file)
     for row in lines
       parseline = JSON.parse(row)
@@ -72,9 +53,11 @@ function parsefile()
       df1 = DataFrame(Dict(parseline))
       dataframe = vcat(dataframe, df1)
     end
-    CSV.write("Output.csv", dataframe)
+
+    # CSV.write("exampleOutput.csv", dataframe)
+    print(dataframe)
   end
 end
 
 
-# parsefile()
+parsefile()
