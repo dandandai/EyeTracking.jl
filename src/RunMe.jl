@@ -1,3 +1,2 @@
 using EyeTracking
-parsefile()
-launch()
+parser()

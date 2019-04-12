@@ -10,14 +10,10 @@ using CImGui.GLFWBackend
 using CImGui.OpenGLBackend
 using CImGui.GLFWBackend.GLFW
 using CImGui.OpenGLBackend.ModernGL
-# using Printf
 
-# include("parser.jl")
-include("newGui.jl")
-include("jsonparser.jl")
+include("jparser.jl")
 
 export
-# launch
-parsefile
+parser
 
 end # module
