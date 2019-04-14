@@ -37,7 +37,7 @@ function launch()
 
     # Instantiate variables that are used to control input and output
     # of various widges.
-    eyeWindow = true
+    eyeDataWindow = true
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
     f = Cfloat(0.0)
     # Default_files = false
@@ -54,13 +54,15 @@ function launch()
             CImGui.Text("Please select files that you want to convert.")
             # @c CImGui.Checkbox("Default files",&Default_files)
             # @c CImGui.SliderFloat("float", &f, 0, 1)
-            CImGui.Text("Please choose a file: ")
+            CImGui.Text("Please input the file path:")
             CImGui.SameLine()
-            CImGui.Button(" ... ")
+            # CImGui.Button(" ... ")
+            # @cstatic buf1="\0"^64 CImGui.InputText("default", buf1, 64)
+            @cstatic buf1=""^64 CImGui.InputText("", buf1, 64, CImGui.ImGuiInputTextFlags_CharsNoBlank)
 
-            CImGui.Button("Convert")
+            CImGui.Button("Convert") &&
             CImGui.SameLine()
-            CImGui.Button("Close")
+            CImGui.Button("Close") && (eyeDataWindow = false;)
             CImGui.End()
         end
 

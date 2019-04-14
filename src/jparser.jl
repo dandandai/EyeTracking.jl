@@ -1,29 +1,28 @@
-function parser()
-
-  open("examplejsondata.json") do file
-    df1 = DataFrame(Timestamp=0,Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
+function parser(path::String)
+  open(path) do file
+    global df1 = DataFrame(Timestamp=0,Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
     GyroscopeZ=0.0,AccelerometerX=0.0,AccelerometerY=0.0,AccelerometerZ=0.0,GazePos3DX=0.0,GazePos3DY=0.0,GazePos3DZ=0.0,GazePosX=0.0,
     GazePosY=0.0,Latency=0,GazeDirectionLX=0.0,GazeDirectionLY=0.0,GazeDirectionLZ=0.0,GazeDirectionRX=0.0,GazeDirectionRY=0.0,GazeDirectionRZ=0.0,
     PupilDiaL=0.0,PupilDiaR=0.0,PupilCenterLX=0.0,PupilCenterLY=0.0,PupilCenterLZ=0.0,PupilCenterRX=0.0,PupilCenterRY=0.0,PupilCenterRZ=0.0)
 
-    df2 = DataFrame(Timestamp=0,Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
+    global df2 = DataFrame(Timestamp=0,Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
     GyroscopeZ=0.0,AccelerometerX=0.0,AccelerometerY=0.0,AccelerometerZ=0.0,GazePos3DX=0.0,GazePos3DY=0.0,GazePos3DZ=0.0,GazePosX=0.0,
     GazePosY=0.0,Latency=0,GazeDirectionLX=0.0,GazeDirectionLY=0.0,GazeDirectionLZ=0.0,GazeDirectionRX=0.0,GazeDirectionRY=0.0,GazeDirectionRZ=0.0,
     PupilDiaL=0.0,PupilDiaR=0.0,PupilCenterLX=0.0,PupilCenterLY=0.0,PupilCenterLZ=0.0,PupilCenterRX=0.0,PupilCenterRY=0.0,PupilCenterRZ=0.0)
 
-    lines = readlines(file)
+    lines = readlines(file)                     ## read the JSON file
 
     for row in lines
-      parseline = JSON.parse(row)
+      parseline = JSON.parse(row)                ##parse each row of the JSON file
 
-      df1[end,:Timestamp] = parseline["ts"]
-      df1[end,:Status] = parseline["s"]
+      df1[end,:Timestamp] = parseline["ts"]          ##assign ts value
+      df1[end,:Status] = parseline["s"]               ##assign s value
 
-      if (haskey(parseline,"pc"))
-              if parseline["eye"] == "left"
-                      df1[end,:PupilCenterLX] = parseline["pc"][1]
-                      df1[end,:PupilCenterLY] = parseline["pc"][2]
-                      df1[end,:PupilCenterLZ] = parseline["pc"][3]
+      if (haskey(parseline,"pc"))                                         ##Check if pc in the line
+              if parseline["eye"] == "left"                                ##indicate the eye
+                      df1[end,:PupilCenterLX] = parseline["pc"][1]         ##assign x coordinate of left eye pupil center
+                      df1[end,:PupilCenterLY] = parseline["pc"][2]         ##assign y coordinate of left eye pupil center
+                      df1[end,:PupilCenterLZ] = parseline["pc"][3]         ##assign z coordinate of left eye pupil center
               end
               if parseline["eye"]=="right"
                       df1[end,:PupilCenterRX] = parseline["pc"][1]
@@ -74,7 +73,7 @@ function parser()
               df1[end,:AccelerometerX] = parseline["ac"][1]
               df1[end,:AccelerometerY] = parseline["ac"][2]
               df1[end,:AccelerometerZ] = parseline["ac"][3]
-              df1 = vcat(df1,df2)
+              df1 = vcat(df1,df2)                                           ##add a new empty row
       end
 
       if (haskey(parseline,"gy"))
@@ -107,7 +106,6 @@ function parser()
       end
 
     end
-
-    CSV.write("exampleOutput22.csv", df1)
-  end
+    CSV.write("Output.csv", df1)
+end
 end
