@@ -37,11 +37,11 @@ function launch()
 
     # Instantiate variables that are used to control input and output
     # of various widges.
-    eyeDataWindow = true
+    # eyeDataWindow = true
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
     f = Cfloat(0.0)
     # Default_files = false
-    Open_files = true
+    # Open_files = true
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
         # start the Dear ImGui frame
@@ -57,12 +57,11 @@ function launch()
             CImGui.Text("Please input the file path:")
             CImGui.SameLine()
             # CImGui.Button(" ... ")
-            # @cstatic buf1="\0"^64 CImGui.InputText("default", buf1, 64)
-            @cstatic buf1=""^64 CImGui.InputText("", buf1, 64, CImGui.ImGuiInputTextFlags_CharsNoBlank)
-
-            CImGui.Button("Convert") &&
+            path = @cstatic buf1=""^64 CImGui.InputText("", buf1, 64)      ## Get the file path input
+            CImGui.Button("Convert") && parser(path)                       ## Call JSON parser function
             CImGui.SameLine()
-            CImGui.Button("Close") && (eyeDataWindow = false;)
+            CImGui.Button("Close")
+            # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked     
             CImGui.End()
         end
 
