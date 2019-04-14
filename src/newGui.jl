@@ -41,7 +41,7 @@ function launch()
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
     f = Cfloat(0.0)
     # Default_files = false
-    # Open_files = true
+    Open_CSV = false
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
         # start the Dear ImGui frame
@@ -60,8 +60,10 @@ function launch()
             path = @cstatic buf1=""^64 CImGui.InputText("", buf1, 64)      ## Get the file path input
             CImGui.Button("Convert") && parser(path)                       ## Call JSON parser function
             CImGui.SameLine()
+            @c CImGui.Checkbox("Open CSV", &Open_CSV)
+
             CImGui.Button("Close")
-            # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked     
+            # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked
             CImGui.End()
         end
 
