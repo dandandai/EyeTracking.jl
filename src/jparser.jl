@@ -1,11 +1,11 @@
 function parser(path::String)
   open(path) do file
-    global df1 = DataFrame(Timestamp=0,Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
+    df1 = DataFrame(Timestamp=0,Date=DateTime(0000),Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
     GyroscopeZ=0.0,AccelerometerX=0.0,AccelerometerY=0.0,AccelerometerZ=0.0,GazePos3DX=0.0,GazePos3DY=0.0,GazePos3DZ=0.0,GazePosX=0.0,
     GazePosY=0.0,Latency=0,GazeDirectionLX=0.0,GazeDirectionLY=0.0,GazeDirectionLZ=0.0,GazeDirectionRX=0.0,GazeDirectionRY=0.0,GazeDirectionRZ=0.0,
     PupilDiaL=0.0,PupilDiaR=0.0,PupilCenterLX=0.0,PupilCenterLY=0.0,PupilCenterLZ=0.0,PupilCenterRX=0.0,PupilCenterRY=0.0,PupilCenterRZ=0.0)
 
-    global df2 = DataFrame(Timestamp=0,Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
+    df2 = DataFrame(Timestamp=0,Date=DateTime(0000),Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
     GyroscopeZ=0.0,AccelerometerX=0.0,AccelerometerY=0.0,AccelerometerZ=0.0,GazePos3DX=0.0,GazePos3DY=0.0,GazePos3DZ=0.0,GazePosX=0.0,
     GazePosY=0.0,Latency=0,GazeDirectionLX=0.0,GazeDirectionLY=0.0,GazeDirectionLZ=0.0,GazeDirectionRX=0.0,GazeDirectionRY=0.0,GazeDirectionRZ=0.0,
     PupilDiaL=0.0,PupilDiaR=0.0,PupilCenterLX=0.0,PupilCenterLY=0.0,PupilCenterLZ=0.0,PupilCenterRX=0.0,PupilCenterRY=0.0,PupilCenterRZ=0.0)
@@ -17,6 +17,7 @@ function parser(path::String)
 
       df1[end,:Timestamp] = parseline["ts"]          ##assign ts value
       df1[end,:Status] = parseline["s"]               ##assign s value
+      df1[end,:Date] = Dates.unix2datetime(parseline["ts"])             ##convert unix time to date time
 
       if (haskey(parseline,"pc"))                                         ##Check if pc in the line
               if parseline["eye"] == "left"                                ##indicate the eye
@@ -106,6 +107,12 @@ function parser(path::String)
       end
 
     end
-    CSV.write("Output.csv", df1)
+
+    # input_path = joinpath(pwd(),"examplejsondata.json")
+    # dirname(input_path)
+    # CSV.write(joinpath(dirname(input_path), "Output.csv"))
+
+    df3 = deleterows!(df1, nrow(df1))              ##delete the last row with meaningless value
+    CSV.write("Output.csv", df3)
 end
 end
