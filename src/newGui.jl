@@ -80,15 +80,23 @@ function launch()
                 # Base.display(df[1,1])
                 if Open_CSV
                     CImGui.Begin("CSV Output")
-                    CImGui.SetNextWindowContentSize((2500.0, 100.0))
+                    CImGui.SetNextWindowContentSize((1500.0, 0.0))
                     CImGui.BeginChild("##ScrollingRegion", ImVec2(0, CImGui.GetFontSize() * 20), false, CImGui.ImGuiWindowFlags_HorizontalScrollbar)
                        CImGui.Columns(34)
-                       ITEMS_COUNT = 15572
+                       ITEMS_COUNT = nrow(df)
 
-                       clipper = CImGui.Clipper(ITEMS_COUNT) # also demonstrate using the clipper for large list
+                       clipper = CImGui.Clipper(1)
+                       clipper2 = CImGui.Clipper(ITEMS_COUNT)  # also demonstrate using the clipper for large list
                        while CImGui.Step(clipper)
-                           s = CImGui.Get(clipper, :DisplayStart)+1
-                           e = CImGui.Get(clipper, :DisplayEnd)
+                           for z = 1:34
+                               df_col = names(df)[z]
+                               CImGui.Text("$df_col")
+                               CImGui.NextColumn()
+                           end
+                       end
+                       while CImGui.Step(clipper2)
+                           s = (CImGui.Get(clipper2, :DisplayStart))+1
+                           e = (CImGui.Get(clipper2, :DisplayEnd))
                            for i = s:e, j = 1:34
                                df_val = df[j][i]
                                CImGui.Text("$df_val")
@@ -96,7 +104,7 @@ function launch()
                            end
                        end
                        CImGui.Destroy(clipper)
-
+                       CImGui.Destroy(clipper2)
                        CImGui.Columns(1)
                        CImGui.EndChild()
                        CImGui.End()
