@@ -42,6 +42,10 @@ function launch()
     f = Cfloat(0.0)
     # Default_files = false
     Open_CSV = false
+    buf1 = "\0"^64
+    working_directory = ""
+    df = DataFrame()
+    # INT_MAX
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
         # start the Dear ImGui frame
@@ -57,14 +61,51 @@ function launch()
             CImGui.Text("Please input the file path:")
             CImGui.SameLine()
             # CImGui.Button(" ... ")
-            path = @cstatic buf1=""^64 CImGui.InputText("", buf1, 64)      ## Get the file path input
-            CImGui.Button("Convert") && parser(path)                       ## Call JSON parser function
+            #path = @cstatic buf1=""^64 CImGui.InputText("", buf1, 64)      ## Get the file path input
+            CImGui.InputText("###path", buf1, length(buf1))
+            first_null = findfirst(isequal('\0'),buf1)
+            path = buf1[1:first_null-1]                    ## Get the file path input
+            working_directory = dirname(path)
+            #@show path, dirname(path)
+            #CImGui.Button("Convert") && parser(path)
+            if  CImGui.Button("Convert")
+                df = parser(path)            ## Call JSON parser function
+            end
+            # if !isempty(df)
+            #     Base.display(df[1,1])
+            # end
             CImGui.SameLine()
             @c CImGui.Checkbox("Open CSV", &Open_CSV)
+            if !isempty(df)
+                # Base.display(df[1,1])
+                if Open_CSV
+                    CImGui.Begin("CSV Output")
+                    CImGui.SetNextWindowContentSize((2500.0, 100.0))
+                    CImGui.BeginChild("##ScrollingRegion", ImVec2(0, CImGui.GetFontSize() * 20), false, CImGui.ImGuiWindowFlags_HorizontalScrollbar)
+                       CImGui.Columns(34)
+                       ITEMS_COUNT = 15572
 
-            CImGui.Button("Close")
-            # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked
-            CImGui.End()
+                       clipper = CImGui.Clipper(ITEMS_COUNT) # also demonstrate using the clipper for large list
+                       while CImGui.Step(clipper)
+                           s = CImGui.Get(clipper, :DisplayStart)+1
+                           e = CImGui.Get(clipper, :DisplayEnd)
+                           for i = s:e, j = 1:34
+                               df_val = df[j][i]
+                               CImGui.Text("$df_val")
+                               CImGui.NextColumn()
+                           end
+                       end
+                       CImGui.Destroy(clipper)
+
+                       CImGui.Columns(1)
+                       CImGui.EndChild()
+                       CImGui.End()
+                   end
+               end
+
+                # CImGui.Button("Close")
+                # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked
+                CImGui.End()
         end
 
         # show a simple window that we create ourselves.
