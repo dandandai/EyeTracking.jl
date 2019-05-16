@@ -100,6 +100,7 @@ function launch()
                            for i = s:e, j = 1:34
                                df_val = df[j][i]
                                CImGui.Text("$df_val")
+                               CImGui.IsItemHovered() && CImGui.SetTooltip(names(df)[j])
                                CImGui.NextColumn()
                            end
                        end
