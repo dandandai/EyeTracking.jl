@@ -113,6 +113,7 @@ function parser(path::String)
     df3 = deleterows!(df1, nrow(df1))              ##delete the last row with meaningless value
 
     CSV.write(joinpath(working_directory,"Output.csv"), df3)
+
 end
 
 return df3

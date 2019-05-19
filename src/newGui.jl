@@ -43,8 +43,56 @@ function launch()
     # Default_files = false
     Open_CSV = false
     buf1 = "\0"^64
+    # buf2 = "\0"^64
     working_directory = ""
     df = DataFrame()
+    # query1 = DataFrame()
+
+    stream_webcam = false
+    show_another_window = false
+    should_binarize_snapshot = false
+    clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
+    show_another_window = true
+    counter = 0
+
+
+    ############################3############################### Video widege parmeter ############################3###############################
+    # video_file = "C:\\Users\\Spock\\Videos\\Eye-Tracking\\Recording006.mp4"
+    # draw_list = CImGui.GetWindowDrawList()
+    # CImGui.GetWindowDrawList()->Ptr{ImDrawList}
+    # GetWindowDrawList() = igGetWindowDrawList()
+
+    video_file = "/Users/apple/Desktop/Eye Tracking/projects/i7cvrux/recordings/iad3hjt/segments/1/fullstream.mp4"
+    # setup camera
+    f = VideoIO.openvideo(video_file)
+    # The OpenGL library expects RGBA UInt8 data layed out in a width x height format.
+    # The data that we capture from the webcam is via the VideoIO package is
+    # represented in RGB format as a matrix (heigth x width).
+    # In order to pass the webcam data to OpenGL we initialize an RGBA image
+    # with the format required by OpenGL and create a view of this matrix.
+    # We then reshape each RGB frame so that it conforms to the OpenGL convention
+    # and copy it
+    # We then copy the RGB channels of each frame into the reshaped view.
+    texture₀ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGBA)
+    image₀ = fill(UInt8(255),(4, f.width, f.height))
+    image₀′ = rawview(channelview(image₀))
+
+    # This will store the processed image which we will display in a second window.
+    texture₁ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGBA)
+    image₁ = fill(UInt8(255),(4, f.width, f.height))
+    image₁′ = rawview(channelview(image₁))
+
+    # Capture the first frame so that we can initialize a buffer to store each
+    # frame that is read from the webcam.
+    imageₙ = read(f)
+    # Create a view of the webcam image and permute the dimensions so that it
+    # conforms to the (width x height) convention used by OpenGL.
+    imageₙ′ = permutedims(rawview(channelview(imageₙ)), [1, 3, 2])
+
+    # Swap the first three channels of the OpenGL image with the permuted RGB frame.
+    embed!(image₀′, imageₙ′)
+    ########################################################### Video widege parmeter ###########################################################
+
     # INT_MAX
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
@@ -58,7 +106,7 @@ function launch()
             CImGui.Text("Please select files that you want to convert.")
             # @c CImGui.Checkbox("Default files",&Default_files)
             # @c CImGui.SliderFloat("float", &f, 0, 1)
-            CImGui.Text("Please input the file path:")
+            CImGui.Text("Please input the JSON file path:")
             CImGui.SameLine()
             # CImGui.Button(" ... ")
             #path = @cstatic buf1=""^64 CImGui.InputText("", buf1, 64)      ## Get the file path input
@@ -71,13 +119,17 @@ function launch()
             if  CImGui.Button("Convert")
                 df = parser(path)            ## Call JSON parser function
             end
-            # if !isempty(df)
-            #     Base.display(df[1,1])
-            # end
+
             CImGui.SameLine()
             @c CImGui.Checkbox("Open CSV", &Open_CSV)
             if !isempty(df)
-                # Base.display(df[1,1])
+                q1 = @from i in df begin
+                    @where i.GazePosX > 0
+                    @select {i.Timestamp,i.GazePosX,i.GazePosY}
+                    @collect DataFrame
+                end
+                # CSV.write("Q1_Output2",q1 )
+
                 if Open_CSV
                     CImGui.Begin("CSV Output")
                     CImGui.SetNextWindowContentSize((1500.0, 0.0))
@@ -109,40 +161,50 @@ function launch()
                        CImGui.Columns(1)
                        CImGui.EndChild()
                        CImGui.End()
-                   end
-               end
+                 end
+            end
 
                 # CImGui.Button("Close")
                 # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked
+
                 CImGui.End()
+
+                ########################################################### Video widege ###########################################################
+                CImGui.Begin("Image Demo")
+
+                if !isempty(df)
+                    q1 = @from i in df begin
+                            @where i.GazePosX > 0
+                            @select {i.Timestamp,i.GazePosX,i.GazePosY}
+                            @collect DataFrame
+                    end
+                    # CSV.write("Q1_Output4",q1 )
+                end
+
+
+                col = Cfloat[1.0,1.0,0.4,1.0]
+                col32 = CImGui.ColorConvertFloat4ToU32(ImVec4(col...))
+                draw_list = CImGui.GetWindowDrawList()
+
+                @c CImGui.Checkbox("Play Video", &stream_webcam)
+                #CImGui.Text("Hello, world!");
+
+                if stream_webcam
+                    # consume the next camera frame
+                    read!(f, imageₙ)
+                    imageₙ′ = permutedims(rawview(channelview(imageₙ)), [1, 3, 2])
+                    embed!(image₀′, imageₙ′)
+                    ImGui_ImplOpenGL3_UpdateImageTexture(texture₀ , image₀, f.width, f.height)
+                    CImGui.Image(Ptr{Cvoid}(texture₀), (f.width, f.height))
+                    # AddCircle(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12, thickness=1.0) = ImDrawList_AddCircle(handle, centre, radius, col, num_segments, thickness)
+                    # CImGui.AddCircle(draw_list,(1.0,1.0), 18.0, col32, 6, 1.0)
+                    CImGui.AddCircle(draw_list,(111.0,111.0), 18.0, col32, 20, 4.0)
+                end
+                CImGui.End()
+                ########################################################### Video widege ###########################################################
         end
 
-        # show a simple window that we create ourselves.
-        # we use a Begin/End pair to created a named window.
-        # @cstatic f=Cfloat(0.0) counter=Cint(0) begin
-        #    CImGui.Begin("Hello, world!")  # create a window called "Hello, world!" and append into it.
-        #    CImGui.Text("This is some useful text.")  # display some text
-        #    @c CImGui.Checkbox("Demo Window", &show_demo_window)  # edit bools storing our window open/close state
-        #    @c CImGui.Checkbox("Another Window", &show_another_window)
 
-        #    @c CImGui.SliderFloat("float", &f, 0, 1)  # edit 1 float using a slider from 0 to 1
-        #    CImGui.ColorEdit3("clear color", clear_color)  # edit 3 floats representing a color
-        #    CImGui.Button("Button") && (counter += 1)
-
-        #    CImGui.SameLine()
-        #    CImGui.Text("counter = $counter")
-        #    CImGui.Text(@sprintf("Application average %.3f ms/frame (%.1f FPS)", 1000 / CImGui.GetIO().Framerate, CImGui.GetIO().Framerate))
-
-        #    CImGui.End()
-        # end
-
-        # show another simple window.
-        # if show_another_window
-        #    @c CImGui.Begin("Another Window", &show_another_window)  # pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        #    CImGui.Text("Hello from another window!")
-        #    CImGui.Button("Close Me") && (show_another_window = false;)
-        #    CImGui.End()
-        # end
 
         # rendering
         CImGui.Render()
@@ -163,4 +225,9 @@ function launch()
     CImGui.DestroyContext(ctx)
 
     GLFW.DestroyWindow(window)
+end
+
+
+function embed!(rgba::AbstractArray, rgb::AbstractArray)
+    rgba[1:3,:,:] .= rgb
 end

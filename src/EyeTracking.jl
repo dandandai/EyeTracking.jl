@@ -3,10 +3,13 @@ using JSON
 using DataFrames
 using CSV
 using Dates
+using Query
 using VideoIO
 using ColorTypes, ImageCore
 using CImGui
-using CImGui
+using CSyntax
+using CSyntax.CFor
+using CSyntax.CStatic
 using CImGui.CSyntax
 using CImGui.CSyntax.CStatic
 using CImGui.GLFWBackend
