@@ -92,7 +92,7 @@ function launch()
     # Swap the first three channels of the OpenGL image with the permuted RGB frame.
     embed!(image₀′, imageₙ′)
     ########################################################### Video widege parmeter ###########################################################
-
+    frame_count = 0
     # INT_MAX
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
@@ -173,7 +173,7 @@ function launch()
                 CImGui.Begin("Image Demo")
 
                 if !isempty(df)
-                    q1 = @from i in df begin
+                    gp = @from i in df begin
                             @where i.GazePosX > 0
                             @select {i.Timestamp,i.GazePosX,i.GazePosY}
                             @collect DataFrame
@@ -188,18 +188,19 @@ function launch()
 
                 @c CImGui.Checkbox("Play Video", &stream_webcam)
                 #CImGui.Text("Hello, world!");
+                # for i=1:nrow(q1)
+                    if stream_webcam
+                        # consume the next camera frame
+                        read!(f, imageₙ)
+                        frame_count = frame_count + 1
+                        imageₙ′ = permutedims(rawview(channelview(imageₙ)), [1, 3, 2])
+                        embed!(image₀′, imageₙ′)
+                        ImGui_ImplOpenGL3_UpdateImageTexture(texture₀ , image₀, f.width, f.height)
+                        CImGui.Image(Ptr{Cvoid}(texture₀), (f.width, f.height))
 
-                if stream_webcam
-                    # consume the next camera frame
-                    read!(f, imageₙ)
-                    imageₙ′ = permutedims(rawview(channelview(imageₙ)), [1, 3, 2])
-                    embed!(image₀′, imageₙ′)
-                    ImGui_ImplOpenGL3_UpdateImageTexture(texture₀ , image₀, f.width, f.height)
-                    CImGui.Image(Ptr{Cvoid}(texture₀), (f.width, f.height))
-                    # AddCircle(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12, thickness=1.0) = ImDrawList_AddCircle(handle, centre, radius, col, num_segments, thickness)
-                    # CImGui.AddCircle(draw_list,(1.0,1.0), 18.0, col32, 6, 1.0)
-                    CImGui.AddCircle(draw_list,(111.0,111.0), 18.0, col32, 20, 4.0)
-                end
+                        CImGui.AddCircle(draw_list,(1917.0*gp[2*frame_count-1, :GazePosX],1148.0*gp[2*frame_count-1, :GazePosY]), 18.0, col32, 20, 5.0)
+                    end
+                # end
                 CImGui.End()
                 ########################################################### Video widege ###########################################################
         end
@@ -231,3 +232,7 @@ end
 function embed!(rgba::AbstractArray, rgb::AbstractArray)
     rgba[1:3,:,:] .= rgb
 end
+
+# for i=1:nrow(q1)
+#     CImGui.AddCircle(draw_list,(1917.0*q1[i, :GazePosX],1148.0*q1[i, :GazePosY]), 18.0, col32, 20, 5.0)
+# end
