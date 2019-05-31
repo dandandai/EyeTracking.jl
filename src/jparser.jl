@@ -1,6 +1,6 @@
 function parser(path::String)
   working_directory = dirname(path)
-   df3 = DataFrame()
+  df3 = DataFrame()
   open(path) do file
     df1 = DataFrame(Timestamp=0,Date=DateTime(0000),Status=0,SignalDir="",Signal=0,VideoTS=0,PresentationTS=0,PipelineVer=0,GyroscopeX=0.0,GyroscopeY=0.0,
     GyroscopeZ=0.0,AccelerometerX=0.0,AccelerometerY=0.0,AccelerometerZ=0.0,GazePos3DX=0.0,GazePos3DY=0.0,GazePos3DZ=0.0,GazePosX=0.0,
@@ -113,8 +113,6 @@ function parser(path::String)
     df3 = deleterows!(df1, nrow(df1))              ##delete the last row with meaningless value
 
     CSV.write(joinpath(working_directory,"Output.csv"), df3)
-
 end
-
 return df3
 end

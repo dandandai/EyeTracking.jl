@@ -49,11 +49,12 @@ function launch()
     # query1 = DataFrame()
 
     stream_webcam = false
-    show_another_window = false
-    should_binarize_snapshot = false
+    # show_another_window = false
+    # should_binarize_snapshot = false
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
     show_another_window = true
     counter = 0
+    frame_count = 0
 
 
     ############################3############################### Video widege parmeter ############################3###############################
@@ -66,33 +67,12 @@ function launch()
     # setup camera
     f = VideoIO.openvideo(video_file)
     # The OpenGL library expects RGBA UInt8 data layed out in a width x height format.
-    # The data that we capture from the webcam is via the VideoIO package is
-    # represented in RGB format as a matrix (heigth x width).
-    # In order to pass the webcam data to OpenGL we initialize an RGBA image
-    # with the format required by OpenGL and create a view of this matrix.
-    # We then reshape each RGB frame so that it conforms to the OpenGL convention
-    # and copy it
-    # We then copy the RGB channels of each frame into the reshaped view.
-    texture₀ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGBA)
-    image₀ = fill(UInt8(255),(4, f.width, f.height))
-    image₀′ = rawview(channelview(image₀))
-
-    # This will store the processed image which we will display in a second window.
-    texture₁ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGBA)
-    image₁ = fill(UInt8(255),(4, f.width, f.height))
-    image₁′ = rawview(channelview(image₁))
+    texture₀ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGB)
 
     # Capture the first frame so that we can initialize a buffer to store each
     # frame that is read from the webcam.
     imageₙ = read(f)
-    # Create a view of the webcam image and permute the dimensions so that it
-    # conforms to the (width x height) convention used by OpenGL.
-    imageₙ′ = permutedims(rawview(channelview(imageₙ)), [1, 3, 2])
-
-    # Swap the first three channels of the OpenGL image with the permuted RGB frame.
-    embed!(image₀′, imageₙ′)
     ########################################################### Video widege parmeter ###########################################################
-    frame_count = 0
     # INT_MAX
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
@@ -182,27 +162,41 @@ function launch()
                 end
 
 
-                col = Cfloat[1.0,1.0,0.4,1.0]
+                col = Cfloat[1.0,1.0,0.0,1.0]
                 col32 = CImGui.ColorConvertFloat4ToU32(ImVec4(col...))
                 draw_list = CImGui.GetWindowDrawList()
 
                 @c CImGui.Checkbox("Play Video", &stream_webcam)
-                #CImGui.Text("Hello, world!");
-                # for i=1:nrow(q1)
-                    if stream_webcam
-                        # consume the next camera frame
-                        read!(f, imageₙ)
-                        frame_count = frame_count + 1
-                        imageₙ′ = permutedims(rawview(channelview(imageₙ)), [1, 3, 2])
-                        embed!(image₀′, imageₙ′)
-                        ImGui_ImplOpenGL3_UpdateImageTexture(texture₀ , image₀, f.width, f.height)
-                        CImGui.Image(Ptr{Cvoid}(texture₀), (f.width, f.height))
+                if stream_webcam
 
-                        CImGui.AddCircle(draw_list,(1917.0*gp[2*frame_count-1, :GazePosX],1148.0*gp[2*frame_count-1, :GazePosY]), 18.0, col32, 20, 5.0)
-                    end
+                    # consume the next camera frame
+                    !eof(f) && read!(f, imageₙ)
+                    frame_count = frame_count + 1
+                    imageₙ′ = unsafe_wrap(Array{UInt8,3}, convert(Ptr{UInt8}, pointer(imageₙ)), (Cint(3), f.width, f.height))
+                    ImGui_ImplOpenGL3_UpdateImageTexture(texture₀ , imageₙ′, f.width, f.height; format = GL_RGB)
+                    CImGui.Image(Ptr{Cvoid}(texture₀), (f.width, f.height))
+                    # @show CImGui.GetWindowPos()
+                    # @show CImGui.GetWindowWidth()
+                    # @show CImGui.GetWindowHeight()
+                    # @show CImGui.GetContentRegionAvail()
+                    # @show CImGui.GetCursorPosX()
+                    # @show CImGui.GetCursorScreenPos()
+                    # @show CImGui.GetTextLineHeight()
+                    # @show CImGui.GetFrameHeightWithSpacing()
+                    # @show CImGui.GetItemRectSize()
+                    video_pos = CImGui.GetCursorScreenPos()
+                    video_size = CImGui.GetItemRectSize()
+                    CImGui.AddCircle(draw_list,(video_pos.x + (video_size.x)*gp[2*frame_count-1, :GazePosX],(video_pos.y- video_size.y)+(video_size.y * gp[2*frame_count-1, :GazePosY])) , 25.0, col32, 20, 7.0)
+                    # CImGui.AddCircle(draw_list,(1917.0, 1148.0), 18.0, col32, 20, 5.0)
+                    # CImGui.AddCircle(draw_list,(Float64(CImGui.GetCursorPosX()),Float64(CImGui.GetCursorPosY())), 18.0, col32, 20, 5.0)
+                    # CImGui.AddCircle(draw_list,(1917.0*gp[2*frame_count-1, :GazePosX],1148.0*gp[2*frame_count-1, :GazePosY]), 18.0, col32, 20, 5.0)
+                    sleep(0.019)
+
+                    # CImGui.AddCircle(draw_list,(1917.0*gp[2*frame_count-1, :GazePosX],1148.0*gp[2*frame_count-1, :GazePosY]), 18.0, col32, 20, 5.0)
+                end
                 # end
                 CImGui.End()
-                ########################################################### Video widege ###########################################################
+    ########################################################### Video widege ###########################################################
         end
 
 
@@ -227,12 +221,3 @@ function launch()
 
     GLFW.DestroyWindow(window)
 end
-
-
-function embed!(rgba::AbstractArray, rgb::AbstractArray)
-    rgba[1:3,:,:] .= rgb
-end
-
-# for i=1:nrow(q1)
-#     CImGui.AddCircle(draw_list,(1917.0*q1[i, :GazePosX],1148.0*q1[i, :GazePosY]), 18.0, col32, 20, 5.0)
-# end
