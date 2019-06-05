@@ -37,42 +37,23 @@ function launch()
 
     # Instantiate variables that are used to control input and output
     # of various widges.
-    # eyeDataWindow = true
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-    f = Cfloat(0.0)
-    # Default_files = false
     Open_CSV = false
-    buf1 = "\0"^64
-    # buf2 = "\0"^64
+    buf1 = "\0"^128
     working_directory = ""
     df = DataFrame()
-    # query1 = DataFrame()
 
-    stream_webcam = false
-    # show_another_window = false
-    # should_binarize_snapshot = false
+    play_video = false
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
     show_another_window = true
     counter = 0
     frame_count = 0
 
+    f = nothing
+    texture₀ =nothing
+    imageₙ = nothing
+    video_is_open = false
 
-    ############################3############################### Video widege parmeter ############################3###############################
-    # video_file = "C:\\Users\\Spock\\Videos\\Eye-Tracking\\Recording006.mp4"
-    # draw_list = CImGui.GetWindowDrawList()
-    # CImGui.GetWindowDrawList()->Ptr{ImDrawList}
-    # GetWindowDrawList() = igGetWindowDrawList()
-
-    video_file = "/Users/apple/Desktop/Eye Tracking/projects/i7cvrux/recordings/iad3hjt/segments/1/fullstream.mp4"
-    # setup camera
-    f = VideoIO.openvideo(video_file)
-    # The OpenGL library expects RGBA UInt8 data layed out in a width x height format.
-    texture₀ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGB)
-
-    # Capture the first frame so that we can initialize a buffer to store each
-    # frame that is read from the webcam.
-    imageₙ = read(f)
-    ########################################################### Video widege parmeter ###########################################################
     # INT_MAX
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
@@ -89,7 +70,6 @@ function launch()
             CImGui.Text("Please input the JSON file path:")
             CImGui.SameLine()
             # CImGui.Button(" ... ")
-            #path = @cstatic buf1=""^64 CImGui.InputText("", buf1, 64)      ## Get the file path input
             CImGui.InputText("###path", buf1, length(buf1))
             first_null = findfirst(isequal('\0'),buf1)
             path = buf1[1:first_null-1]                    ## Get the file path input
@@ -99,7 +79,6 @@ function launch()
             if  CImGui.Button("Convert")
                 df = parser(path)            ## Call JSON parser function
             end
-
             CImGui.SameLine()
             @c CImGui.Checkbox("Open CSV", &Open_CSV)
             if !isempty(df)
@@ -108,7 +87,6 @@ function launch()
                     @select {i.Timestamp,i.GazePosX,i.GazePosY}
                     @collect DataFrame
                 end
-                # CSV.write("Q1_Output2",q1 )
 
                 if Open_CSV
                     CImGui.Begin("CSV Output")
@@ -142,15 +120,25 @@ function launch()
                        CImGui.EndChild()
                        CImGui.End()
                  end
+
+                 if  CImGui.Button("Load Video file")
+                     video_file = joinpath(working_directory,"fullstream.mp4")
+                     # setup camera
+                     f = VideoIO.openvideo(video_file)
+                     # The OpenGL library expects RGBA UInt8 data layed out in a width x height format.
+                     texture₀ = ImGui_ImplOpenGL3_CreateImageTexture(f.width, f.height, format = GL_RGB)
+                     # Capture the first frame so that we can initialize a buffer to store each
+                     # frame that is read from the webcam.
+                     imageₙ = read(f)
+                     video_is_open = true
+                 end
             end
 
-                # CImGui.Button("Close")
-                # && (eyeDataWindow = false;)                ##Try to minmise the widget when "Close" button was clicked
 
                 CImGui.End()
 
-                ########################################################### Video widege ###########################################################
-                CImGui.Begin("Image Demo")
+    ########################################################### Video widege ###########################################################
+                CImGui.Begin("Video window")
 
                 if !isempty(df)
                     gp = @from i in df begin
@@ -158,7 +146,6 @@ function launch()
                             @select {i.Timestamp,i.GazePosX,i.GazePosY}
                             @collect DataFrame
                     end
-                    # CSV.write("Q1_Output4",q1 )
                 end
 
 
@@ -166,8 +153,9 @@ function launch()
                 col32 = CImGui.ColorConvertFloat4ToU32(ImVec4(col...))
                 draw_list = CImGui.GetWindowDrawList()
 
-                @c CImGui.Checkbox("Play Video", &stream_webcam)
-                if stream_webcam
+                @c CImGui.Checkbox("Play Video", &play_video)
+
+                if play_video && video_is_open
 
                     # consume the next camera frame
                     !eof(f) && read!(f, imageₙ)
@@ -175,24 +163,12 @@ function launch()
                     imageₙ′ = unsafe_wrap(Array{UInt8,3}, convert(Ptr{UInt8}, pointer(imageₙ)), (Cint(3), f.width, f.height))
                     ImGui_ImplOpenGL3_UpdateImageTexture(texture₀ , imageₙ′, f.width, f.height; format = GL_RGB)
                     CImGui.Image(Ptr{Cvoid}(texture₀), (f.width, f.height))
-                    # @show CImGui.GetWindowPos()
-                    # @show CImGui.GetWindowWidth()
-                    # @show CImGui.GetWindowHeight()
-                    # @show CImGui.GetContentRegionAvail()
-                    # @show CImGui.GetCursorPosX()
-                    # @show CImGui.GetCursorScreenPos()
-                    # @show CImGui.GetTextLineHeight()
-                    # @show CImGui.GetFrameHeightWithSpacing()
-                    # @show CImGui.GetItemRectSize()
                     video_pos = CImGui.GetCursorScreenPos()
                     video_size = CImGui.GetItemRectSize()
-                    CImGui.AddCircle(draw_list,(video_pos.x + (video_size.x)*gp[2*frame_count-1, :GazePosX],(video_pos.y- video_size.y)+(video_size.y * gp[2*frame_count-1, :GazePosY])) , 25.0, col32, 20, 7.0)
-                    # CImGui.AddCircle(draw_list,(1917.0, 1148.0), 18.0, col32, 20, 5.0)
-                    # CImGui.AddCircle(draw_list,(Float64(CImGui.GetCursorPosX()),Float64(CImGui.GetCursorPosY())), 18.0, col32, 20, 5.0)
-                    # CImGui.AddCircle(draw_list,(1917.0*gp[2*frame_count-1, :GazePosX],1148.0*gp[2*frame_count-1, :GazePosY]), 18.0, col32, 20, 5.0)
+                    if nrow(gp)- (2*frame_count-1) >= 0
+                        CImGui.AddCircle(draw_list,(video_pos.x + (video_size.x)*gp[2*frame_count-1, :GazePosX],(video_pos.y- video_size.y)+(video_size.y * gp[2*frame_count-1, :GazePosY])) , 25.0, col32, 20, 7.0)
+                    end
                     sleep(0.019)
-
-                    # CImGui.AddCircle(draw_list,(1917.0*gp[2*frame_count-1, :GazePosX],1148.0*gp[2*frame_count-1, :GazePosY]), 18.0, col32, 20, 5.0)
                 end
                 # end
                 CImGui.End()
